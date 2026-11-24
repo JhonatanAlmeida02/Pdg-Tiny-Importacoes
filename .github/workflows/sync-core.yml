@@ -1,0 +1,39 @@
+name: Sync Core (cadastro mestre)
+
+# Depois de cada "Sync Produtos Tiny" que deu certo, envia a base de produtos
+# para o cadastro mestre da Plataforma Prodigy (schema core). Também pode ser
+# disparado à mão na aba Actions.
+on:
+  workflow_run:
+    workflows: ["Sync Produtos Tiny"]
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-core
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # pega o CSV que o Sync Produtos acabou de gravar
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências
+        run: pip install "psycopg[binary]==3.2.3"
+
+      - name: Enviar produtos para o core
+        env:
+          CORE_DATABASE_URL: ${{ secrets.CORE_DATABASE_URL }}
+        run: python sincronizar_core.py
