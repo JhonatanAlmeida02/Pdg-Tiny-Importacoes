@@ -32,6 +32,7 @@ CAMPOS = {
     "marca": "brand",
     "situacao": "situation",
     "tipo_variacao": "variation",
+    "classe_produto": "product_class",
     "id_produto_pai": "parent_id",
     "data_alteracao": "updated_at",
 }
